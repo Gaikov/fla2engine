@@ -1,4 +1,0 @@
--cp ./src
--lib jsfl
--main com.grom.fla2engine.Main
--js ./bin/fla2engine.jsfl

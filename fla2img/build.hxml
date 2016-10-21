@@ -2,4 +2,5 @@
 -cp ../flaLib/src
 -lib jsfl
 -main com.grom.fla2img.Main
+-D haxeJSON
 -js ./bin/fla2img.jsfl
