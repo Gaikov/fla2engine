@@ -1,0 +1,5 @@
+-cp ./src
+-cp ../flaLib/src
+-lib jsfl
+-main com.grom.fla2img.Main
+-js ./bin/fla2img.jsfl

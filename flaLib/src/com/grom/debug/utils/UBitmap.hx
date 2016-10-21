@@ -1,8 +1,9 @@
-package com.grom.fla2engine.utils;
-import com.grom.fla2engine.debug.Log;
+package com.grom.debug.utils;
+import com.grom.debug.debug.Log;
 import jsfl.Item.ItemType;
 import jsfl.BitmapItem;
 import jsfl.Document;
+
 class UBitmap
 {
     static public function createBitmap(doc:Document, name:String):BitmapItem

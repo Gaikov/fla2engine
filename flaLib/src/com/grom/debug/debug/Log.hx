@@ -1,5 +1,7 @@
-package com.grom.fla2engine.debug;
+package com.grom.debug.debug;
+import com.grom.debug.utils.UFlash;
 import com.grom.fla2engine.utils.UFlash;
+
 class Log
 {
     static public function info(message:String):Void

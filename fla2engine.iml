@@ -29,11 +29,11 @@
     <orderEntry type="module-library">
       <library name="haxelib|jsfl">
         <CLASSES>
-          <root url="c:\HaxeToolkit\haxe\lib\jsfl/1,2,4/" />
+          <root url="d:\HaxeToolkit\haxe\lib\jsfl/1,2,4/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES>
-          <root url="c:\HaxeToolkit\haxe\lib\jsfl/1,2,4/" />
+          <root url="d:\HaxeToolkit\haxe\lib\jsfl/1,2,4/" />
         </SOURCES>
       </library>
     </orderEntry>
