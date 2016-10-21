@@ -1,5 +1,9 @@
 package com.grom.fla2img;
-import com.grom.debug.processor.IDocPreprocessingStrategy;
+import com.grom.processor.IDocPreprocessingStrategy;
+import jsfl.Frame;
+import jsfl.Document;
+import jsfl.Layer;
+import jsfl.Timeline;
 
 class BitmapConvertStrategy implements IDocPreprocessingStrategy
 {

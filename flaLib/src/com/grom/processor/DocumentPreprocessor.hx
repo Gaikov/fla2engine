@@ -1,10 +1,10 @@
-package com.grom.debug.processor;
-import com.grom.debug.debug.Log;
+package com.grom.processor;
+import com.grom.utils.UElement;
+import com.grom.debug.Log;
 import jsfl.Layer;
 import jsfl.Timeline;
 import jsfl.SymbolItem;
 import jsfl.Item.ItemType;
-import utils.UElement;
 import jsfl.Document;
 
 class DocumentPreprocessor

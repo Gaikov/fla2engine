@@ -1,5 +1,5 @@
-package com.grom.debug.debug;
-import com.grom.debug.utils.UFlash;
+package com.grom.debug;
+import com.grom.utils.UFlash;
 
 class Log
 {

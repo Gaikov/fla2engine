@@ -1,7 +1,7 @@
 package com.grom.fla2img;
-import com.grom.debug.settings.Config;
-import com.grom.debug.debug.Log;
-import com.grom.debug.utils.UFlash;
+import com.grom.settings.Config;
+import com.grom.debug.Log;
+import com.grom.utils.UFlash;
 import jsfl.Flash;
 
 class Main

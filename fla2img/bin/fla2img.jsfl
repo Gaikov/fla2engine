@@ -157,30 +157,51 @@ Type["typeof"] = function(v) {
 Type.enumIndex = function(e) {
 	return e[1];
 };
-var com_grom_debug_debug_Log = function() { };
-com_grom_debug_debug_Log.__name__ = true;
-com_grom_debug_debug_Log.info = function(message) {
-	haxe_Log.trace(message,{ fileName : "Log.hx", lineNumber : 8, className : "com.grom.debug.debug.Log", methodName : "info"});
+var com_grom_debug_Log = function() { };
+com_grom_debug_Log.__name__ = true;
+com_grom_debug_Log.info = function(message) {
+	haxe_Log.trace(message,{ fileName : "Log.hx", lineNumber : 8, className : "com.grom.debug.Log", methodName : "info"});
 };
-com_grom_debug_debug_Log.warning = function(message) {
-	com_grom_debug_debug_Log.info("WARNING: " + message);
+com_grom_debug_Log.warning = function(message) {
+	com_grom_debug_Log.info("WARNING: " + message);
 };
-com_grom_debug_debug_Log.error = function(message) {
-	com_grom_debug_debug_Log.info("ERROR: " + message);
-	com_grom_debug_utils_UFlash.alert(message);
+com_grom_debug_Log.error = function(message) {
+	com_grom_debug_Log.info("ERROR: " + message);
+	com_grom_utils_UFlash.alert(message);
 };
-var com_grom_debug_settings_Config = function() {
+var com_grom_fla2img_Main = function() {
+	fl.outputPanel.clear();
+	var doc = fl.getDocumentDOM();
+	doc.save();
+	com_grom_utils_UFlash.readConfig(doc,"fla2img");
+	var outPath = com_grom_utils_UFlash.pickOutputPath();
+	com_grom_debug_Log.info("output path picked: " + outPath);
+	if(outPath == null) {
+		com_grom_debug_Log.warning("output path is not selected");
+		return;
+	}
+	com_grom_settings_Config.instance().write();
+	doc.revert();
+};
+com_grom_fla2img_Main.__name__ = true;
+com_grom_fla2img_Main.main = function() {
+	new com_grom_fla2img_Main();
+};
+com_grom_fla2img_Main.prototype = {
+	__class__: com_grom_fla2img_Main
+};
+var com_grom_settings_Config = function() {
 	this._vars = new haxe_ds_StringMap();
 };
-com_grom_debug_settings_Config.__name__ = true;
-com_grom_debug_settings_Config.instance = function() {
-	if(com_grom_debug_settings_Config._instance == null) com_grom_debug_settings_Config._instance = new com_grom_debug_settings_Config();
-	return com_grom_debug_settings_Config._instance;
+com_grom_settings_Config.__name__ = true;
+com_grom_settings_Config.instance = function() {
+	if(com_grom_settings_Config._instance == null) com_grom_settings_Config._instance = new com_grom_settings_Config();
+	return com_grom_settings_Config._instance;
 };
-com_grom_debug_settings_Config.prototype = {
+com_grom_settings_Config.prototype = {
 	read: function(fileName) {
 		this._fileName = fileName;
-		com_grom_debug_debug_Log.info("read config: " + fileName);
+		com_grom_debug_Log.info("read config: " + fileName);
 		if(FLfile.exists(fileName)) {
 			var data = FLfile.read(fileName);
 			var json = new haxe_format_JsonParser(data).parseRec();
@@ -191,11 +212,11 @@ com_grom_debug_settings_Config.prototype = {
 				++_g;
 				this.setString(name,Reflect.getProperty(json,name));
 			}
-		} else com_grom_debug_debug_Log.info("config not found: " + fileName);
+		} else com_grom_debug_Log.info("config not found: " + fileName);
 	}
 	,write: function() {
 		if(this._fileName == null) {
-			com_grom_debug_debug_Log.warning("can't save config, filename is not specified!");
+			com_grom_debug_Log.warning("can't save config, filename is not specified!");
 			return;
 		}
 		var res = { };
@@ -205,9 +226,9 @@ com_grom_debug_settings_Config.prototype = {
 			Reflect.setField(res,name,this._vars.get(name));
 		}
 		var data = haxe_format_JsonPrinter.print(res,null,null);
-		com_grom_debug_debug_Log.info(data);
-		com_grom_debug_debug_Log.info("write config: " + this._fileName);
-		if(!FLfile.write(this._fileName,data)) com_grom_debug_debug_Log.warning("Can't save config: " + this._fileName);
+		com_grom_debug_Log.info(data);
+		com_grom_debug_Log.info("write config: " + this._fileName);
+		if(!FLfile.write(this._fileName,data)) com_grom_debug_Log.warning("Can't save config: " + this._fileName);
 	}
 	,getString: function(name) {
 		if(this._vars.exists(name)) return this._vars.get(name);
@@ -216,47 +237,26 @@ com_grom_debug_settings_Config.prototype = {
 	,setString: function(name,value) {
 		this._vars.set(name,value);
 	}
-	,__class__: com_grom_debug_settings_Config
+	,__class__: com_grom_settings_Config
 };
-var com_grom_debug_utils_UFlash = function() { };
-com_grom_debug_utils_UFlash.__name__ = true;
-com_grom_debug_utils_UFlash.alert = function(message) {
+var com_grom_utils_UFlash = function() { };
+com_grom_utils_UFlash.__name__ = true;
+com_grom_utils_UFlash.alert = function(message) {
 	alert(message);
 };
-com_grom_debug_utils_UFlash.readConfig = function(doc,appName) {
+com_grom_utils_UFlash.readConfig = function(doc,appName) {
 	if(doc.pathURI != null) {
 		var configPath = StringTools.replace(doc.pathURI,".fla","." + appName + ".cfg");
-		com_grom_debug_settings_Config.instance().read(configPath);
+		com_grom_settings_Config.instance().read(configPath);
 	}
 };
-com_grom_debug_utils_UFlash.pickOutputPath = function() {
-	var outPath = com_grom_debug_settings_Config.instance().getString("output_path");
+com_grom_utils_UFlash.pickOutputPath = function() {
+	var outPath = com_grom_settings_Config.instance().getString("output_path");
 	if(outPath == null || !FLfile.exists(outPath)) {
 		outPath = fl.browseForFolderURL("Browse output folder");
-		if(outPath != null) com_grom_debug_settings_Config.instance().setString("output_path",outPath);
+		if(outPath != null) com_grom_settings_Config.instance().setString("output_path",outPath);
 	}
 	return outPath;
-};
-var com_grom_fla2img_Main = function() {
-	fl.outputPanel.clear();
-	var doc = fl.getDocumentDOM();
-	doc.save();
-	com_grom_debug_utils_UFlash.readConfig(doc,"fla2img");
-	var outPath = com_grom_debug_utils_UFlash.pickOutputPath();
-	com_grom_debug_debug_Log.info("output path picked: " + outPath);
-	if(outPath == null) {
-		com_grom_debug_debug_Log.warning("output path is not selected");
-		return;
-	}
-	com_grom_debug_settings_Config.instance().write();
-	doc.revert();
-};
-com_grom_fla2img_Main.__name__ = true;
-com_grom_fla2img_Main.main = function() {
-	new com_grom_fla2img_Main();
-};
-com_grom_fla2img_Main.prototype = {
-	__class__: com_grom_fla2img_Main
 };
 var haxe_IMap = function() { };
 haxe_IMap.__name__ = true;

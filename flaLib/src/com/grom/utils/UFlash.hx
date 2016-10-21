@@ -1,8 +1,8 @@
-package com.grom.debug.utils;
+package com.grom.utils;
+import com.grom.settings.Config;
 import jsfl.Flash;
 import jsfl.FLfile;
 import String;
-import com.grom.debug.settings.Config;
 import jsfl.Document;
 
 class UFlash

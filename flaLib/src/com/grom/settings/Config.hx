@@ -1,9 +1,8 @@
-package com.grom.debug.settings;
+package com.grom.settings;
+import com.grom.debug.Log;
 import haxe.ds.StringMap;
 import haxe.Json;
 import jsfl.FLfile;
-
-import com.grom.debug.debug.Log;
 
 class Config
 {

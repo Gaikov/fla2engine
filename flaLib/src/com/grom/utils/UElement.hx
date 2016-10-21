@@ -1,5 +1,4 @@
-package com.grom.debug.utils;
-import utils.UMath;
+package com.grom.utils;
 import jsfl.Matrix;
 import jsfl.Item;
 import jsfl.Element;

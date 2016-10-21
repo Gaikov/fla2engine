@@ -1,4 +1,4 @@
-package com.grom.debug.utils;
+package com.grom.utils;
 class Vec2
 {
 	public var x:Float;

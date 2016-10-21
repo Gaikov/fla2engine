@@ -1,5 +1,5 @@
-package com.grom.debug.utils;
-import com.grom.debug.debug.Log;
+package com.grom.utils;
+import com.grom.debug.Log;
 import jsfl.Item.ItemType;
 import jsfl.BitmapItem;
 import jsfl.Document;

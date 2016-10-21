@@ -1,4 +1,4 @@
-package com.grom.debug.processor;
+package com.grom.processor;
 import jsfl.Layer;
 import jsfl.Frame;
 import jsfl.Timeline;
