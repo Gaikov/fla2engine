@@ -1,4 +1,10 @@
 package com.grom.fla2img;
+import jsfl.Item.ItemType;
+import com.grom.utils.ULibrary;
+import jsfl.BitmapInstance;
+import jsfl.Element;
+import jsfl.Shape;
+import com.grom.debug.Log;
 import com.grom.processor.IDocPreprocessingStrategy;
 import jsfl.Frame;
 import jsfl.Document;
@@ -9,6 +15,8 @@ class BitmapConvertStrategy implements IDocPreprocessingStrategy
 {
 	private var _timeline:Timeline;
 	private var _layer:Layer;
+	private var _layerIndex:Int;
+	private var _doc:Document;
 
 	public function new()
 	{
@@ -16,21 +24,74 @@ class BitmapConvertStrategy implements IDocPreprocessingStrategy
 
 	public function begin(doc:Document):Void
 	{
+		_doc = doc;
 	}
 
 	public function processTimeline(tl:Timeline):Void
 	{
+		Log.info("timeline to bitmap: " + tl.name);
 		_timeline = tl;
 	}
 
-	public function processLayer(l:Layer):Void
+	public function processLayer(l:Layer, index:Int):Void
 	{
 		_layer = l;
+		_layerIndex = index;
 	}
 
-	public function processFrame(f:Frame):Void
+	public function processFrame(f:Frame, frameIndex:Int):Void
 	{
+		var elements:Array<Element> = f.elements.copy();
+		var index = 0;
 
+		for (e in elements)
+		{
+			if (e.elementType == ElementType.Shape)
+			{
+				var fullName = "fla2img/" + (_timeline.libraryItem != null ? _timeline.libraryItem.name : _timeline.name);
+				if (_layerIndex > 0)
+				{
+					fullName += "_l" + _layerIndex;
+				}
+				if (frameIndex > 0)
+				{
+					fullName += "_f" + frameIndex;
+				}
+				if (index > 0)
+				{
+					fullName += "_e" + index;
+				}
+
+				Log.info("converting to bitmap: " + fullName);
+				_doc.selection = [e];
+				_doc.convertSelectionToBitmap();
+
+				var converted:Element = _doc.selection[0];
+				if (converted.elementType == ElementType.Instance)
+				{
+					Log.info("converted: " + converted);
+					var bi:BitmapInstance = cast converted;
+					//bi.libraryItem.name = fullName;
+
+					var folder = ULibrary.getItemPath(fullName);
+					if (!_doc.library.itemExists(folder))
+					{
+						_doc.library.addNewItem(ItemType.Folder, folder);
+					}
+					_doc.library.moveToFolder(ULibrary.getItemPath(fullName), bi.libraryItem.name);
+					_doc.library.selectItem(bi.libraryItem.name);
+					_doc.library.renameItem(ULibrary.getItemName(fullName));
+					//bi.libraryItem.name = ULibrary.getItemName(fullName);
+					//_doc.library.renameItem
+				}
+				else
+				{
+					Log.warning("can't convert shape to bitmap: " + fullName);
+				}
+
+				index++;
+			}
+		}
 	}
 
 	public function end():Void

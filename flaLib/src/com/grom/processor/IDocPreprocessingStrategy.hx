@@ -8,7 +8,7 @@ interface IDocPreprocessingStrategy
 {
 	function begin(doc:Document):Void;
 	function processTimeline(tl:Timeline):Void;
-	function processLayer(l:Layer):Void;
-	function processFrame(f:Frame):Void;
+	function processLayer(l:Layer, index:Int):Void;
+	function processFrame(f:Frame, index:Int):Void;
 	function end():Void;
 }

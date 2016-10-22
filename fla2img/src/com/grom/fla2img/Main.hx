@@ -1,4 +1,5 @@
 package com.grom.fla2img;
+import com.grom.processor.DocumentPreprocessor;
 import com.grom.settings.Config;
 import com.grom.debug.Log;
 import com.grom.utils.UFlash;
@@ -22,12 +23,12 @@ class Main
 			return;
 		}
 
-
-
-
+		var processor:DocumentPreprocessor = new DocumentPreprocessor(doc);
+		processor.addPreprocessor(new BitmapConvertStrategy());
+		processor.process();
 
 		Config.instance().write();
-		doc.revert();
+		//doc.revert();
 	}
 
 	static public function main():Void

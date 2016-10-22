@@ -17,6 +17,11 @@ class DocumentPreprocessor
 		_doc = doc;
 	}
 
+	public function addPreprocessor(p:IDocPreprocessingStrategy):Void
+	{
+		_processors.push(p);
+	}
+
 	public function process():Void
 	{
 		Log.info("****************************************************");
@@ -75,18 +80,20 @@ class DocumentPreprocessor
 			layer.locked = false;
 			layer.visible = true;
 
-			processLayer(layer, tl);
+			processLayer(l, tl);
 
 			layer.locked = locked;
 			layer.visible = visible;
 		}
 	}
 
-	private function processLayer(l:Layer, tl:Timeline):Void
+	private function processLayer(layerIndex:Int, tl:Timeline):Void
 	{
+		var l = tl.layers[layerIndex];
+
 		for (p in _processors)
 		{
-			p.processLayer(l);
+			p.processLayer(l, layerIndex);
 		}
 
 		for (f in 0...l.frameCount)
@@ -96,7 +103,7 @@ class DocumentPreprocessor
 
 			for (p in _processors)
 			{
-				p.processFrame(frame);
+				p.processFrame(frame, f);
 			}
 		}
 	}

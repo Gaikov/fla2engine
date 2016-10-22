@@ -30,6 +30,7 @@ class UFlash
             if (outPath != null)
             {
                 Config.instance().setString("output_path", outPath);
+                Config.instance().write();
             }
         }
         return outPath;

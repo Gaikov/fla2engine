@@ -37,7 +37,7 @@ class UElement
 		return types.indexOf(item.itemType) >= 0;
 	}
 
-	static public function computePivot(parentPos:Vec2, childTransform:Matrix):Vec2
+/*	static public function computePivot(parentPos:Vec2, childTransform:Matrix):Vec2
 	{
 		var inv = UMatrix.inverse(childTransform);
 		return UMatrix.applyToPoint(inv, parentPos);
@@ -46,7 +46,7 @@ class UElement
 	static public function convertColor(color:String):String
 	{
 		return StringTools.replace(color, "#", "");
-	}
+	}*/
 
 /*	static public function computeMatrix(e:Element):Matrix
 	{

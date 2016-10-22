@@ -30,6 +30,18 @@ HxOverrides.substr = function(s,pos,len) {
 	} else if(len < 0) len = s.length + len - pos;
 	return s.substr(pos,len);
 };
+HxOverrides.indexOf = function(a,obj,i) {
+	var len = a.length;
+	if(i < 0) {
+		i += len;
+		if(i < 0) i = 0;
+	}
+	while(i < len) {
+		if(a[i] === obj) return i;
+		i++;
+	}
+	return -1;
+};
 HxOverrides.iter = function(a) {
 	return { cur : 0, arr : a, hasNext : function() {
 		return this.cur < this.arr.length;
@@ -70,6 +82,9 @@ Reflect.isFunction = function(f) {
 };
 var Std = function() { };
 Std.__name__ = true;
+Std.string = function(s) {
+	return js_Boot.__string_rec(s,"");
+};
 Std.parseInt = function(x) {
 	var v = parseInt(x,10);
 	if(v == 0 && (HxOverrides.cca(x,1) == 120 || HxOverrides.cca(x,1) == 88)) v = parseInt(x);
@@ -169,6 +184,61 @@ com_grom_debug_Log.error = function(message) {
 	com_grom_debug_Log.info("ERROR: " + message);
 	com_grom_utils_UFlash.alert(message);
 };
+var com_grom_processor_IDocPreprocessingStrategy = function() { };
+com_grom_processor_IDocPreprocessingStrategy.__name__ = true;
+com_grom_processor_IDocPreprocessingStrategy.prototype = {
+	__class__: com_grom_processor_IDocPreprocessingStrategy
+};
+var com_grom_fla2img_BitmapConvertStrategy = function() {
+};
+com_grom_fla2img_BitmapConvertStrategy.__name__ = true;
+com_grom_fla2img_BitmapConvertStrategy.__interfaces__ = [com_grom_processor_IDocPreprocessingStrategy];
+com_grom_fla2img_BitmapConvertStrategy.prototype = {
+	begin: function(doc) {
+		this._doc = doc;
+	}
+	,processTimeline: function(tl) {
+		com_grom_debug_Log.info("timeline to bitmap: " + tl.name);
+		this._timeline = tl;
+	}
+	,processLayer: function(l,index) {
+		this._layer = l;
+		this._layerIndex = index;
+	}
+	,processFrame: function(f,frameIndex) {
+		var elements = f.elements.slice();
+		var index = 0;
+		var _g = 0;
+		while(_g < elements.length) {
+			var e = elements[_g];
+			++_g;
+			if(e.elementType == "shape") {
+				var fullName;
+				fullName = "fla2img/" + (this._timeline.libraryItem != null?this._timeline.libraryItem.name:this._timeline.name);
+				if(this._layerIndex > 0) fullName += "_l" + this._layerIndex;
+				if(frameIndex > 0) fullName += "_f" + frameIndex;
+				if(index > 0) fullName += "_e" + index;
+				com_grom_debug_Log.info("converting to bitmap: " + fullName);
+				this._doc.selection = [e];
+				this._doc.convertSelectionToBitmap();
+				var converted = this._doc.selection[0];
+				if(converted.elementType == "instance") {
+					com_grom_debug_Log.info("converted: " + Std.string(converted));
+					var bi = converted;
+					var folder = com_grom_utils_ULibrary.getItemPath(fullName);
+					if(!this._doc.library.itemExists(folder)) this._doc.library.addNewItem("folder",folder);
+					this._doc.library.moveToFolder(com_grom_utils_ULibrary.getItemPath(fullName),bi.libraryItem.name);
+					this._doc.library.selectItem(bi.libraryItem.name);
+					this._doc.library.renameItem(com_grom_utils_ULibrary.getItemName(fullName));
+				} else com_grom_debug_Log.warning("can't convert shape to bitmap: " + fullName);
+				index++;
+			}
+		}
+	}
+	,end: function() {
+	}
+	,__class__: com_grom_fla2img_BitmapConvertStrategy
+};
 var com_grom_fla2img_Main = function() {
 	fl.outputPanel.clear();
 	var doc = fl.getDocumentDOM();
@@ -180,8 +250,10 @@ var com_grom_fla2img_Main = function() {
 		com_grom_debug_Log.warning("output path is not selected");
 		return;
 	}
+	var processor = new com_grom_processor_DocumentPreprocessor(doc);
+	processor.addPreprocessor(new com_grom_fla2img_BitmapConvertStrategy());
+	processor.process();
 	com_grom_settings_Config.instance().write();
-	doc.revert();
 };
 com_grom_fla2img_Main.__name__ = true;
 com_grom_fla2img_Main.main = function() {
@@ -189,6 +261,106 @@ com_grom_fla2img_Main.main = function() {
 };
 com_grom_fla2img_Main.prototype = {
 	__class__: com_grom_fla2img_Main
+};
+var com_grom_processor_DocumentPreprocessor = function(doc) {
+	this._processors = [];
+	this._doc = doc;
+};
+com_grom_processor_DocumentPreprocessor.__name__ = true;
+com_grom_processor_DocumentPreprocessor.prototype = {
+	addPreprocessor: function(p) {
+		this._processors.push(p);
+	}
+	,process: function() {
+		com_grom_debug_Log.info("****************************************************");
+		com_grom_debug_Log.info(" Preprocessing document...");
+		com_grom_debug_Log.info("****************************************************");
+		var _g = 0;
+		var _g1 = this._processors;
+		while(_g < _g1.length) {
+			var p = _g1[_g];
+			++_g;
+			p.begin(this._doc);
+		}
+		var _g11 = 0;
+		var _g2 = this._doc.timelines.length;
+		while(_g11 < _g2) {
+			var i = _g11++;
+			var tl = this._doc.timelines[i];
+			this._doc.currentTimeline = i;
+			this.processTimeline(tl);
+		}
+		var _g3 = 0;
+		var _g12 = this._doc.library.items;
+		while(_g3 < _g12.length) {
+			var item = _g12[_g3];
+			++_g3;
+			if(com_grom_utils_UElement.itemIs(item,["graphic","movie clip","button"])) {
+				var symbol = item;
+				this._doc.library.editItem(item.name);
+				this.processTimeline(symbol.timeline);
+			}
+		}
+		var _g4 = 0;
+		var _g13 = this._processors;
+		while(_g4 < _g13.length) {
+			var p1 = _g13[_g4];
+			++_g4;
+			p1.end();
+		}
+		com_grom_debug_Log.info("****************************************************");
+		com_grom_debug_Log.info(" Preprocessing COMPLETED.");
+		com_grom_debug_Log.info("****************************************************");
+	}
+	,processTimeline: function(tl) {
+		com_grom_debug_Log.info("...preprocessing timeline: " + tl.name);
+		var _g = 0;
+		var _g1 = this._processors;
+		while(_g < _g1.length) {
+			var p = _g1[_g];
+			++_g;
+			p.processTimeline(tl);
+		}
+		var _g11 = 0;
+		var _g2 = tl.layerCount;
+		while(_g11 < _g2) {
+			var l = _g11++;
+			tl.currentLayer = l;
+			var layer = tl.layers[l];
+			var locked = layer.locked;
+			var visible = layer.visible;
+			layer.locked = false;
+			layer.visible = true;
+			this.processLayer(l,tl);
+			layer.locked = locked;
+			layer.visible = visible;
+		}
+	}
+	,processLayer: function(layerIndex,tl) {
+		var l = tl.layers[layerIndex];
+		var _g = 0;
+		var _g1 = this._processors;
+		while(_g < _g1.length) {
+			var p = _g1[_g];
+			++_g;
+			p.processLayer(l,layerIndex);
+		}
+		var _g11 = 0;
+		var _g2 = l.frameCount;
+		while(_g11 < _g2) {
+			var f = _g11++;
+			tl.currentFrame = f;
+			var frame = l.frames[f];
+			var _g21 = 0;
+			var _g3 = this._processors;
+			while(_g21 < _g3.length) {
+				var p1 = _g3[_g21];
+				++_g21;
+				p1.processFrame(frame,f);
+			}
+		}
+	}
+	,__class__: com_grom_processor_DocumentPreprocessor
 };
 var com_grom_settings_Config = function() {
 	this._vars = new haxe_ds_StringMap();
@@ -239,6 +411,28 @@ com_grom_settings_Config.prototype = {
 	}
 	,__class__: com_grom_settings_Config
 };
+var com_grom_utils_UElement = function() { };
+com_grom_utils_UElement.__name__ = true;
+com_grom_utils_UElement.hasRotation = function(e) {
+	return !isNaN(e.rotation) && e.rotation != 0;
+};
+com_grom_utils_UElement.getRotation = function(e) {
+	var rotation = 0;
+	if(com_grom_utils_UElement.hasRotation(e)) rotation = com_grom_utils_UMath.deg2rad(e.rotation);
+	return rotation;
+};
+com_grom_utils_UElement.getSkew = function(e) {
+	var resX = 0;
+	var resY = 0;
+	if(!com_grom_utils_UElement.hasRotation(e)) {
+		resX = e.skewX;
+		resY = e.skewY;
+	}
+	return new com_grom_utils_Vec2(resX,resY);
+};
+com_grom_utils_UElement.itemIs = function(item,types) {
+	return HxOverrides.indexOf(types,item.itemType,0) >= 0;
+};
 var com_grom_utils_UFlash = function() { };
 com_grom_utils_UFlash.__name__ = true;
 com_grom_utils_UFlash.alert = function(message) {
@@ -254,9 +448,40 @@ com_grom_utils_UFlash.pickOutputPath = function() {
 	var outPath = com_grom_settings_Config.instance().getString("output_path");
 	if(outPath == null || !FLfile.exists(outPath)) {
 		outPath = fl.browseForFolderURL("Browse output folder");
-		if(outPath != null) com_grom_settings_Config.instance().setString("output_path",outPath);
+		if(outPath != null) {
+			com_grom_settings_Config.instance().setString("output_path",outPath);
+			com_grom_settings_Config.instance().write();
+		}
 	}
 	return outPath;
+};
+var com_grom_utils_ULibrary = function() { };
+com_grom_utils_ULibrary.__name__ = true;
+com_grom_utils_ULibrary.getItemPath = function(fullName) {
+	var lastIndex = fullName.lastIndexOf("/");
+	if(lastIndex >= 0) return HxOverrides.substr(fullName,0,lastIndex);
+	return null;
+};
+com_grom_utils_ULibrary.getItemName = function(fullName) {
+	var lastIndex = fullName.lastIndexOf("/");
+	if(lastIndex >= 0) return HxOverrides.substr(fullName,lastIndex + 1,null);
+	return null;
+};
+var com_grom_utils_UMath = function() { };
+com_grom_utils_UMath.__name__ = true;
+com_grom_utils_UMath.deg2rad = function(deg) {
+	return deg * Math.PI / 180.0;
+};
+com_grom_utils_UMath.vec2str = function(v) {
+	return "[ " + v.x + " , " + v.y + " ]";
+};
+var com_grom_utils_Vec2 = function(ix,iy) {
+	this.x = ix;
+	this.y = iy;
+};
+com_grom_utils_Vec2.__name__ = true;
+com_grom_utils_Vec2.prototype = {
+	__class__: com_grom_utils_Vec2
 };
 var haxe_IMap = function() { };
 haxe_IMap.__name__ = true;
@@ -777,6 +1002,9 @@ js_Boot.__nativeClassName = function(o) {
 };
 js_Boot.__resolveNativeClass = function(name) {
 	return $global[name];
+};
+if(Array.prototype.indexOf) HxOverrides.indexOf = function(a,o,i) {
+	return Array.prototype.indexOf.call(a,o,i);
 };
 String.prototype.__class__ = String;
 String.__name__ = true;
