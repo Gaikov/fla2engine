@@ -41,57 +41,65 @@ class BitmapConvertStrategy implements IDocPreprocessingStrategy
 
 	public function processFrame(f:Frame, frameIndex:Int):Void
 	{
-		var elements:Array<Element> = f.elements.copy();
 		var index = 0;
+		var shape = findNextShape(f);
 
-		for (e in elements)
+		while (shape != null)
+		{
+			var fullName = "fla2img/" + (_timeline.libraryItem != null ? _timeline.libraryItem.name : _timeline.name);
+			if (_layerIndex > 0)
+			{
+				fullName += "_l" + _layerIndex;
+			}
+			if (frameIndex > 0)
+			{
+				fullName += "_f" + frameIndex;
+			}
+			if (index > 0)
+			{
+				fullName += "_e" + index;
+			}
+
+			Log.info("converting to bitmap: " + fullName + ":" + shape);
+			_doc.selectNone();
+			_doc.selection = [shape];
+			_doc.convertSelectionToBitmap();
+
+			var converted:Element = _doc.selection[0];
+			if (converted != null && converted.elementType == ElementType.Instance)
+			{
+				Log.info("converted: " + converted);
+				var bi:BitmapInstance = cast converted;
+
+				var folder = ULibrary.getItemPath(fullName);
+				if (!_doc.library.itemExists(folder))
+				{
+					_doc.library.addNewItem(ItemType.Folder, folder);
+				}
+				_doc.library.moveToFolder(ULibrary.getItemPath(fullName), bi.libraryItem.name);
+				_doc.library.selectItem(bi.libraryItem.name);
+				_doc.library.renameItem(ULibrary.getItemName(fullName));
+			}
+			else
+			{
+				Log.warning("can't convert shape to bitmap: " + fullName);
+			}
+
+			index++;
+			shape = findNextShape(f);
+		}
+	}
+
+	private function findNextShape(f:Frame):Shape
+	{
+		for (e in f.elements)
 		{
 			if (e.elementType == ElementType.Shape)
 			{
-				var fullName = "fla2img/" + (_timeline.libraryItem != null ? _timeline.libraryItem.name : _timeline.name);
-				if (_layerIndex > 0)
-				{
-					fullName += "_l" + _layerIndex;
-				}
-				if (frameIndex > 0)
-				{
-					fullName += "_f" + frameIndex;
-				}
-				if (index > 0)
-				{
-					fullName += "_e" + index;
-				}
-
-				Log.info("converting to bitmap: " + fullName);
-				_doc.selection = [e];
-				_doc.convertSelectionToBitmap();
-
-				var converted:Element = _doc.selection[0];
-				if (converted.elementType == ElementType.Instance)
-				{
-					Log.info("converted: " + converted);
-					var bi:BitmapInstance = cast converted;
-					//bi.libraryItem.name = fullName;
-
-					var folder = ULibrary.getItemPath(fullName);
-					if (!_doc.library.itemExists(folder))
-					{
-						_doc.library.addNewItem(ItemType.Folder, folder);
-					}
-					_doc.library.moveToFolder(ULibrary.getItemPath(fullName), bi.libraryItem.name);
-					_doc.library.selectItem(bi.libraryItem.name);
-					_doc.library.renameItem(ULibrary.getItemName(fullName));
-					//bi.libraryItem.name = ULibrary.getItemName(fullName);
-					//_doc.library.renameItem
-				}
-				else
-				{
-					Log.warning("can't convert shape to bitmap: " + fullName);
-				}
-
-				index++;
+				return cast e;
 			}
 		}
+		return null;
 	}
 
 	public function end():Void

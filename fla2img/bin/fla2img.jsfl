@@ -206,34 +206,41 @@ com_grom_fla2img_BitmapConvertStrategy.prototype = {
 		this._layerIndex = index;
 	}
 	,processFrame: function(f,frameIndex) {
-		var elements = f.elements.slice();
 		var index = 0;
-		var _g = 0;
-		while(_g < elements.length) {
-			var e = elements[_g];
-			++_g;
-			if(e.elementType == "shape") {
-				var fullName;
-				fullName = "fla2img/" + (this._timeline.libraryItem != null?this._timeline.libraryItem.name:this._timeline.name);
-				if(this._layerIndex > 0) fullName += "_l" + this._layerIndex;
-				if(frameIndex > 0) fullName += "_f" + frameIndex;
-				if(index > 0) fullName += "_e" + index;
-				com_grom_debug_Log.info("converting to bitmap: " + fullName);
-				this._doc.selection = [e];
-				this._doc.convertSelectionToBitmap();
-				var converted = this._doc.selection[0];
-				if(converted.elementType == "instance") {
-					com_grom_debug_Log.info("converted: " + Std.string(converted));
-					var bi = converted;
-					var folder = com_grom_utils_ULibrary.getItemPath(fullName);
-					if(!this._doc.library.itemExists(folder)) this._doc.library.addNewItem("folder",folder);
-					this._doc.library.moveToFolder(com_grom_utils_ULibrary.getItemPath(fullName),bi.libraryItem.name);
-					this._doc.library.selectItem(bi.libraryItem.name);
-					this._doc.library.renameItem(com_grom_utils_ULibrary.getItemName(fullName));
-				} else com_grom_debug_Log.warning("can't convert shape to bitmap: " + fullName);
-				index++;
-			}
+		var shape = this.findNextShape(f);
+		while(shape != null) {
+			var fullName;
+			fullName = "fla2img/" + (this._timeline.libraryItem != null?this._timeline.libraryItem.name:this._timeline.name);
+			if(this._layerIndex > 0) fullName += "_l" + this._layerIndex;
+			if(frameIndex > 0) fullName += "_f" + frameIndex;
+			if(index > 0) fullName += "_e" + index;
+			com_grom_debug_Log.info("converting to bitmap: " + fullName + ":" + Std.string(shape));
+			this._doc.selectNone();
+			this._doc.selection = [shape];
+			this._doc.convertSelectionToBitmap();
+			var converted = this._doc.selection[0];
+			if(converted != null && converted.elementType == "instance") {
+				com_grom_debug_Log.info("converted: " + Std.string(converted));
+				var bi = converted;
+				var folder = com_grom_utils_ULibrary.getItemPath(fullName);
+				if(!this._doc.library.itemExists(folder)) this._doc.library.addNewItem("folder",folder);
+				this._doc.library.moveToFolder(com_grom_utils_ULibrary.getItemPath(fullName),bi.libraryItem.name);
+				this._doc.library.selectItem(bi.libraryItem.name);
+				this._doc.library.renameItem(com_grom_utils_ULibrary.getItemName(fullName));
+			} else com_grom_debug_Log.warning("can't convert shape to bitmap: " + fullName);
+			index++;
+			shape = this.findNextShape(f);
 		}
+	}
+	,findNextShape: function(f) {
+		var _g = 0;
+		var _g1 = f.elements;
+		while(_g < _g1.length) {
+			var e = _g1[_g];
+			++_g;
+			if(e.elementType == "shape") return e;
+		}
+		return null;
 	}
 	,end: function() {
 	}
