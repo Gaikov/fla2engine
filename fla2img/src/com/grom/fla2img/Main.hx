@@ -1,4 +1,8 @@
 package com.grom.fla2img;
+import jsfl.FLfile;
+import com.grom.utils.ULibrary;
+import jsfl.BitmapItem;
+import jsfl.Item.ItemType;
 import com.grom.processor.DocumentPreprocessor;
 import com.grom.settings.Config;
 import com.grom.debug.Log;
@@ -27,8 +31,34 @@ class Main
 		processor.addPreprocessor(new BitmapConvertStrategy());
 		processor.process();
 
+		for (item in doc.library.items)
+		{
+			if (item.itemType == ItemType.Bitmap)
+			{
+				var bm:BitmapItem = cast item;
+				var outFileName:String = outPath + "/" + bm.name;
+				if (outFileName.indexOf(".") < 0)
+				{
+					outFileName += ".png";
+				}
+
+				Log.info("exporting bitmap: " + outFileName);
+
+				var path = ULibrary.getItemPath(outFileName);
+				if (!FLfile.exists(path))
+				{
+					FLfile.createFolder(path);
+				}
+
+				if (!bm.exportToFile(outFileName))
+				{
+					Log.warning("can't save bitmap: " + outFileName);
+				}
+			}
+		}
+
 		Config.instance().write();
-		//doc.revert();
+		doc.revert();
 	}
 
 	static public function main():Void

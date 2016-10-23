@@ -79,13 +79,13 @@ class BitmapConvertStrategy implements IDocPreprocessingStrategy
 				_doc.library.moveToFolder(ULibrary.getItemPath(fullName), bi.libraryItem.name);
 				_doc.library.selectItem(bi.libraryItem.name);
 				_doc.library.renameItem(ULibrary.getItemName(fullName));
+				index++;
 			}
 			else
 			{
 				Log.warning("can't convert shape to bitmap: " + fullName);
 			}
 
-			index++;
 			shape = findNextShape(f);
 		}
 	}

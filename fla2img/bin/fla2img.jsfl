@@ -227,8 +227,8 @@ com_grom_fla2img_BitmapConvertStrategy.prototype = {
 				this._doc.library.moveToFolder(com_grom_utils_ULibrary.getItemPath(fullName),bi.libraryItem.name);
 				this._doc.library.selectItem(bi.libraryItem.name);
 				this._doc.library.renameItem(com_grom_utils_ULibrary.getItemName(fullName));
+				index++;
 			} else com_grom_debug_Log.warning("can't convert shape to bitmap: " + fullName);
-			index++;
 			shape = this.findNextShape(f);
 		}
 	}
@@ -260,7 +260,23 @@ var com_grom_fla2img_Main = function() {
 	var processor = new com_grom_processor_DocumentPreprocessor(doc);
 	processor.addPreprocessor(new com_grom_fla2img_BitmapConvertStrategy());
 	processor.process();
+	var _g = 0;
+	var _g1 = doc.library.items;
+	while(_g < _g1.length) {
+		var item = _g1[_g];
+		++_g;
+		if(item.itemType == "bitmap") {
+			var bm = item;
+			var outFileName = outPath + "/" + bm.name;
+			if(outFileName.indexOf(".") < 0) outFileName += ".png";
+			com_grom_debug_Log.info("exporting bitmap: " + outFileName);
+			var path = com_grom_utils_ULibrary.getItemPath(outFileName);
+			if(!FLfile.exists(path)) FLfile.createFolder(path);
+			if(!bm.exportToFile(outFileName)) com_grom_debug_Log.warning("can't save bitmap: " + outFileName);
+		}
+	}
 	com_grom_settings_Config.instance().write();
+	doc.revert();
 };
 com_grom_fla2img_Main.__name__ = true;
 com_grom_fla2img_Main.main = function() {
