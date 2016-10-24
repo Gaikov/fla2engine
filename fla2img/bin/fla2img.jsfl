@@ -189,7 +189,8 @@ com_grom_processor_IDocPreprocessingStrategy.__name__ = true;
 com_grom_processor_IDocPreprocessingStrategy.prototype = {
 	__class__: com_grom_processor_IDocPreprocessingStrategy
 };
-var com_grom_fla2img_BitmapConvertStrategy = function() {
+var com_grom_fla2img_BitmapConvertStrategy = function(shapresRescale) {
+	this._shapesRescale = shapresRescale;
 };
 com_grom_fla2img_BitmapConvertStrategy.__name__ = true;
 com_grom_fla2img_BitmapConvertStrategy.__interfaces__ = [com_grom_processor_IDocPreprocessingStrategy];
@@ -216,6 +217,8 @@ com_grom_fla2img_BitmapConvertStrategy.prototype = {
 			if(index > 0) fullName += "_e" + index;
 			com_grom_debug_Log.info("converting to bitmap: " + fullName + ":" + Std.string(shape));
 			this._doc.selectNone();
+			shape.scaleX *= this._shapesRescale;
+			shape.scaleY *= this._shapesRescale;
 			this._doc.selection = [shape];
 			this._doc.convertSelectionToBitmap();
 			var converted = this._doc.selection[0];
@@ -258,7 +261,7 @@ var com_grom_fla2img_Main = function() {
 		return;
 	}
 	var processor = new com_grom_processor_DocumentPreprocessor(doc);
-	processor.addPreprocessor(new com_grom_fla2img_BitmapConvertStrategy());
+	processor.addPreprocessor(new com_grom_fla2img_BitmapConvertStrategy(com_grom_settings_Config.instance().getFloat("shapes_scale",1)));
 	processor.process();
 	var _g = 0;
 	var _g1 = doc.library.items;
@@ -431,6 +434,15 @@ com_grom_settings_Config.prototype = {
 	}
 	,setString: function(name,value) {
 		this._vars.set(name,value);
+	}
+	,getFloat: function(name,defValue) {
+		var value = defValue;
+		var str = this.getString(name);
+		if(str == null) this.setFloat(name,defValue); else value = parseFloat(str);
+		return value;
+	}
+	,setFloat: function(name,value) {
+		this.setString(name,value == null?"null":"" + value);
 	}
 	,__class__: com_grom_settings_Config
 };

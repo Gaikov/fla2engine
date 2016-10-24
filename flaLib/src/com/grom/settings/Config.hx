@@ -83,4 +83,25 @@ class Config
 	{
 		_vars.set(name, value);
 	}
+
+	public function getFloat(name:String, defValue:Float):Float
+	{
+		var value:Float = defValue;
+		var str = getString(name);
+		if (str == null)
+		{
+			setFloat(name, defValue);
+		}
+		else
+		{
+			value = Std.parseFloat(str);
+		}
+
+		return value;
+	}
+
+	public function setFloat(name:String, value:Float):Void
+	{
+		setString(name, Std.string(value));
+	}
 }

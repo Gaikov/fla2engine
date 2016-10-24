@@ -17,9 +17,11 @@ class BitmapConvertStrategy implements IDocPreprocessingStrategy
 	private var _layer:Layer;
 	private var _layerIndex:Int;
 	private var _doc:Document;
+	private var _shapesRescale:Float;
 
-	public function new()
+	public function new(shapresRescale:Float)
 	{
+		_shapesRescale = shapresRescale;
 	}
 
 	public function begin(doc:Document):Void
@@ -62,6 +64,8 @@ class BitmapConvertStrategy implements IDocPreprocessingStrategy
 
 			Log.info("converting to bitmap: " + fullName + ":" + shape);
 			_doc.selectNone();
+			shape.scaleX *= _shapesRescale;
+			shape.scaleY *= _shapesRescale;
 			_doc.selection = [shape];
 			_doc.convertSelectionToBitmap();
 

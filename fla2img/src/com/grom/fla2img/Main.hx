@@ -28,7 +28,7 @@ class Main
 		}
 
 		var processor:DocumentPreprocessor = new DocumentPreprocessor(doc);
-		processor.addPreprocessor(new BitmapConvertStrategy());
+		processor.addPreprocessor(new BitmapConvertStrategy(Config.instance().getFloat("shapes_scale", 1)));
 		processor.process();
 
 		for (item in doc.library.items)
