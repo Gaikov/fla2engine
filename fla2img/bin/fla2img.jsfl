@@ -423,7 +423,7 @@ com_grom_settings_Config.prototype = {
 			var name = $it0.next();
 			Reflect.setField(res,name,this._vars.get(name));
 		}
-		var data = haxe_format_JsonPrinter.print(res,null,null);
+		var data = haxe_format_JsonPrinter.print(res,null,"\t");
 		com_grom_debug_Log.info(data);
 		com_grom_debug_Log.info("write config: " + this._fileName);
 		if(!FLfile.write(this._fileName,data)) com_grom_debug_Log.warning("Can't save config: " + this._fileName);

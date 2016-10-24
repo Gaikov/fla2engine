@@ -51,7 +51,7 @@ class Config
 			Reflect.setField(res, name, _vars.get(name));
 		}
 
-		var data:String = Json.stringify(res);
+		var data:String = Json.stringify(res, null, "\t");
 		Log.info(data);
 
 		Log.info("write config: " + _fileName);
