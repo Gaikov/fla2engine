@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<dialog title="Export options" buttons="accept, cancel">
+    <vbox>
+        <label control="scale" value="Shapes scale:"/>
+        <textbox id="scale" value="1.0"/>
+        <label control="imagesGroup" value="Export images:"/>
+        <radiogroup id="imagesGroup">
+            <radio id="checkAll" label="All library" value="all"/>
+            <radio id="checkSelected" selected="true" label="Selected library items" value="selected"/>
+        </radiogroup>
+    </vbox>
+</dialog>

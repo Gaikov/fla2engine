@@ -22,6 +22,30 @@ class DocumentPreprocessor
 		_processors.push(p);
 	}
 
+	private function prepareTimelines():Array<Timeline>
+	{
+		var res = new Array<Timeline>();
+
+		for (i in 0..._doc.timelines.length)
+		{
+			res.push(_doc.timelines[i]);
+		}
+
+		for (item in _doc.library.items)
+		{
+			if (UElement.itemIs(item, [ItemType.Graphic, ItemType.MovieClip, ItemType.Button]))
+			{
+				var symbol:SymbolItem = cast item;
+				if (res.indexOf(symbol.timeline) < 0)
+				{
+					res.push(symbol.timeline);
+				}
+			}
+		}
+
+		return res;
+	}
+
 	public function process():Void
 	{
 		Log.info("****************************************************");
@@ -33,10 +57,18 @@ class DocumentPreprocessor
 			p.begin(_doc);
 		}
 
-		for (i in 0..._doc.timelines.length)
+		var timelines = prepareTimelines();
+
+		for (tl in timelines)
 		{
-			var tl = _doc.timelines[i];
-			_doc.currentTimeline = i;
+			if (tl.libraryItem != null)
+			{
+				_doc.library.editItem(tl.libraryItem.name);
+			}
+			else
+			{
+				_doc.currentTimeline = _doc.timelines.indexOf(tl);
+			}
 			processTimeline(tl);
 		}
 

@@ -22,6 +22,7 @@ class BitmapConvertStrategy implements IDocPreprocessingStrategy
 	public function new(shapresRescale:Float)
 	{
 		_shapesRescale = shapresRescale;
+		Log.info("shapes scale: " + shapresRescale);
 	}
 
 	public function begin(doc:Document):Void

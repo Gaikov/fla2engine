@@ -191,6 +191,7 @@ com_grom_processor_IDocPreprocessingStrategy.prototype = {
 };
 var com_grom_fla2img_BitmapConvertStrategy = function(shapresRescale) {
 	this._shapesRescale = shapresRescale;
+	com_grom_debug_Log.info("shapes scale: " + shapresRescale);
 };
 com_grom_fla2img_BitmapConvertStrategy.__name__ = true;
 com_grom_fla2img_BitmapConvertStrategy.__interfaces__ = [com_grom_processor_IDocPreprocessingStrategy];
@@ -260,8 +261,13 @@ var com_grom_fla2img_Main = function() {
 		com_grom_debug_Log.warning("output path is not selected");
 		return;
 	}
+	if(!com_grom_fla2img_StartPopup.show()) {
+		com_grom_debug_Log.info("fla2img dialog canceled");
+		return;
+	}
+	var scale = com_grom_settings_Config.instance().getFloat("shapes_scale",1);
 	var processor = new com_grom_processor_DocumentPreprocessor(doc);
-	processor.addPreprocessor(new com_grom_fla2img_BitmapConvertStrategy(com_grom_settings_Config.instance().getFloat("shapes_scale",1)));
+	processor.addPreprocessor(new com_grom_fla2img_BitmapConvertStrategy(scale));
 	processor.process();
 	var _g = 0;
 	var _g1 = doc.library.items;
@@ -288,6 +294,49 @@ com_grom_fla2img_Main.main = function() {
 com_grom_fla2img_Main.prototype = {
 	__class__: com_grom_fla2img_Main
 };
+var com_grom_ui_BasePopup = function(layoutURI,properties,doc) {
+	var popupFile = com_grom_utils_UFlash.getScriptURIPath() + "StartPopup.xml";
+	com_grom_debug_Log.info("load popup xml: " + popupFile);
+	if(doc == null) doc = fl.getDocumentDOM();
+	this._result = doc.xmlPanel(popupFile);
+	com_grom_debug_Log.info("popup result:");
+	var _g = 0;
+	var _g1 = Reflect.fields(this._result);
+	while(_g < _g1.length) {
+		var name = _g1[_g];
+		++_g;
+		var value = Reflect.getProperty(this._result,name);
+		com_grom_debug_Log.info("prop: " + name + "=" + value);
+	}
+};
+com_grom_ui_BasePopup.__name__ = true;
+com_grom_ui_BasePopup.prototype = {
+	getDismiss: function() {
+		return this._result.dismiss;
+	}
+	,getResult: function() {
+		return this._result;
+	}
+	,__class__: com_grom_ui_BasePopup
+};
+var com_grom_fla2img_StartPopup = function() {
+	com_grom_ui_BasePopup.call(this,"StartPopup.xml",null,fl.getDocumentDOM());
+	if(this.getDismiss() == "accept") {
+		var config = com_grom_settings_Config.instance();
+		config.setFloat("shapes_scale",Std.parseFloat(this.getResult().scale));
+		config.setBoolean("all_items",Std.string(this.getResult().imagesGroup) == "all");
+		config.write();
+	}
+};
+com_grom_fla2img_StartPopup.__name__ = true;
+com_grom_fla2img_StartPopup.show = function() {
+	var popup = new com_grom_fla2img_StartPopup();
+	return popup.getDismiss() == "accept";
+};
+com_grom_fla2img_StartPopup.__super__ = com_grom_ui_BasePopup;
+com_grom_fla2img_StartPopup.prototype = $extend(com_grom_ui_BasePopup.prototype,{
+	__class__: com_grom_fla2img_StartPopup
+});
 var com_grom_processor_DocumentPreprocessor = function(doc) {
 	this._processors = [];
 	this._doc = doc;
@@ -296,6 +345,26 @@ com_grom_processor_DocumentPreprocessor.__name__ = true;
 com_grom_processor_DocumentPreprocessor.prototype = {
 	addPreprocessor: function(p) {
 		this._processors.push(p);
+	}
+	,prepareTimelines: function() {
+		var res = [];
+		var _g1 = 0;
+		var _g = this._doc.timelines.length;
+		while(_g1 < _g) {
+			var i = _g1++;
+			res.push(this._doc.timelines[i]);
+		}
+		var _g2 = 0;
+		var _g11 = this._doc.library.items;
+		while(_g2 < _g11.length) {
+			var item = _g11[_g2];
+			++_g2;
+			if(com_grom_utils_UElement.itemIs(item,["graphic","movie clip","button"])) {
+				var symbol = item;
+				if(HxOverrides.indexOf(res,symbol.timeline,0) < 0) res.push(symbol.timeline);
+			}
+		}
+		return res;
 	}
 	,process: function() {
 		com_grom_debug_Log.info("****************************************************");
@@ -308,18 +377,18 @@ com_grom_processor_DocumentPreprocessor.prototype = {
 			++_g;
 			p.begin(this._doc);
 		}
-		var _g11 = 0;
-		var _g2 = this._doc.timelines.length;
-		while(_g11 < _g2) {
-			var i = _g11++;
-			var tl = this._doc.timelines[i];
-			this._doc.currentTimeline = i;
+		var timelines = this.prepareTimelines();
+		var _g2 = 0;
+		while(_g2 < timelines.length) {
+			var tl = timelines[_g2];
+			++_g2;
+			if(tl.libraryItem != null) this._doc.library.editItem(tl.libraryItem.name); else this._doc.currentTimeline = HxOverrides.indexOf(this._doc.timelines,tl,0);
 			this.processTimeline(tl);
 		}
 		var _g3 = 0;
-		var _g12 = this._doc.library.items;
-		while(_g3 < _g12.length) {
-			var item = _g12[_g3];
+		var _g11 = this._doc.library.items;
+		while(_g3 < _g11.length) {
+			var item = _g11[_g3];
 			++_g3;
 			if(com_grom_utils_UElement.itemIs(item,["graphic","movie clip","button"])) {
 				var symbol = item;
@@ -328,9 +397,9 @@ com_grom_processor_DocumentPreprocessor.prototype = {
 			}
 		}
 		var _g4 = 0;
-		var _g13 = this._processors;
-		while(_g4 < _g13.length) {
-			var p1 = _g13[_g4];
+		var _g12 = this._processors;
+		while(_g4 < _g12.length) {
+			var p1 = _g12[_g4];
 			++_g4;
 			p1.end();
 		}
@@ -424,8 +493,8 @@ com_grom_settings_Config.prototype = {
 			Reflect.setField(res,name,this._vars.get(name));
 		}
 		var data = haxe_format_JsonPrinter.print(res,null,"\t");
-		com_grom_debug_Log.info(data);
 		com_grom_debug_Log.info("write config: " + this._fileName);
+		com_grom_debug_Log.info(data);
 		if(!FLfile.write(this._fileName,data)) com_grom_debug_Log.warning("Can't save config: " + this._fileName);
 	}
 	,getString: function(name) {
@@ -444,8 +513,16 @@ com_grom_settings_Config.prototype = {
 	,setFloat: function(name,value) {
 		this.setString(name,value == null?"null":"" + value);
 	}
+	,setBoolean: function(name,value) {
+		this.setString(name,value?"true":"false");
+	}
+	,getBoolean: function(name) {
+		return this.getString(name) == "true";
+	}
 	,__class__: com_grom_settings_Config
 };
+var com_grom_ui_PopupResult = function() { };
+com_grom_ui_PopupResult.__name__ = true;
 var com_grom_utils_UElement = function() { };
 com_grom_utils_UElement.__name__ = true;
 com_grom_utils_UElement.hasRotation = function(e) {
@@ -481,6 +558,7 @@ com_grom_utils_UFlash.readConfig = function(doc,appName) {
 };
 com_grom_utils_UFlash.pickOutputPath = function() {
 	var outPath = com_grom_settings_Config.instance().getString("output_path");
+	com_grom_debug_Log.info(outPath);
 	if(outPath == null || !FLfile.exists(outPath)) {
 		outPath = fl.browseForFolderURL("Browse output folder");
 		if(outPath != null) {
@@ -489,6 +567,10 @@ com_grom_utils_UFlash.pickOutputPath = function() {
 		}
 	}
 	return outPath;
+};
+com_grom_utils_UFlash.getScriptURIPath = function() {
+	var len = fl.scriptURI.lastIndexOf("/") + 1;
+	return HxOverrides.substr(fl.scriptURI,0,len);
 };
 var com_grom_utils_ULibrary = function() { };
 com_grom_utils_ULibrary.__name__ = true;
@@ -1050,6 +1132,8 @@ var __map_reserved = {}
 haxe_Log.trace = function(v,infos) {
 	fl.trace(v);
 };
+com_grom_ui_PopupResult.ACCEPT = "accept";
+com_grom_ui_PopupResult.CANCEL = "cancel";
 js_Boot.__toStr = {}.toString;
 com_grom_fla2img_Main.main();
 })(typeof console != "undefined" ? console : {log:function(){}}, typeof window != "undefined" ? window : typeof global != "undefined" ? global : typeof self != "undefined" ? self : this);

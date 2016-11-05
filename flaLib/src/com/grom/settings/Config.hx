@@ -52,9 +52,9 @@ class Config
 		}
 
 		var data:String = Json.stringify(res, null, "\t");
-		Log.info(data);
 
 		Log.info("write config: " + _fileName);
+		Log.info(data);
 		if (!FLfile.write(_fileName, data))
 		{
 			Log.warning("Can't save config: " + _fileName);
@@ -103,5 +103,15 @@ class Config
 	public function setFloat(name:String, value:Float):Void
 	{
 		setString(name, Std.string(value));
+	}
+
+	public function setBoolean(name:String, value:Bool):Void
+	{
+		setString(name, value ? "true" : "false");
+	}
+
+	public function getBoolean(name:String):Bool
+	{
+		return getString(name) == "true";
 	}
 }

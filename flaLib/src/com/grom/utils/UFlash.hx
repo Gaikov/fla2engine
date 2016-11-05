@@ -1,4 +1,5 @@
 package com.grom.utils;
+import com.grom.debug.Log;
 import com.grom.settings.Config;
 import jsfl.Flash;
 import jsfl.FLfile;
@@ -24,6 +25,7 @@ class UFlash
     static public function pickOutputPath():String
     {
         var outPath:String = Config.instance().getString("output_path");
+        Log.info(outPath);
         if (outPath == null || !FLfile.exists(outPath))
         {
             outPath = Flash.browseForFolderURL("Browse output folder");
@@ -34,5 +36,10 @@ class UFlash
             }
         }
         return outPath;
+    }
+
+    public static function getScriptURIPath():String
+    {
+        return Flash.scriptURI.substr(0, Flash.scriptURI.lastIndexOf("/")+1);
     }
 }

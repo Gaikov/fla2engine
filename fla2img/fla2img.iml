@@ -16,5 +16,38 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="flaLib" />
     <orderEntry type="library" name="jsfl" level="project" />
+    <orderEntry type="module-library">
+      <library name="haxelib|./src">
+        <CLASSES>
+          <root url="file://./src" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://./src" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="haxelib|../flaLib/src">
+        <CLASSES>
+          <root url="file://../flaLib/src" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="file://../flaLib/src" />
+        </SOURCES>
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="haxelib|jsfl">
+        <CLASSES>
+          <root url="c:\HaxeToolkit\haxe\lib\jsfl/1,2,4/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="c:\HaxeToolkit\haxe\lib\jsfl/1,2,4/" />
+        </SOURCES>
+      </library>
+    </orderEntry>
   </component>
 </module>

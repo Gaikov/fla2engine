@@ -27,8 +27,15 @@ class Main
 			return;
 		}
 
+		if (!StartPopup.show())
+		{
+			Log.info("fla2img dialog canceled");
+			return;
+		}
+
+		var scale = Config.instance().getFloat("shapes_scale", 1);
 		var processor:DocumentPreprocessor = new DocumentPreprocessor(doc);
-		processor.addPreprocessor(new BitmapConvertStrategy(Config.instance().getFloat("shapes_scale", 1)));
+		processor.addPreprocessor(new BitmapConvertStrategy(scale));
 		processor.process();
 
 		for (item in doc.library.items)
