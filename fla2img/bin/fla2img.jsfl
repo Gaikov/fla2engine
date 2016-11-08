@@ -266,7 +266,14 @@ var com_grom_fla2img_Main = function() {
 		return;
 	}
 	var scale = com_grom_settings_Config.instance().getFloat("shapes_scale",1);
-	var processor = new com_grom_processor_DocumentPreprocessor(doc);
+	var selectedItems = !com_grom_settings_Config.instance().getBoolean("all_items");
+	if(selectedItems && doc.library.getSelectedItems().length == 0) {
+		com_grom_utils_UFlash.alert("Please selecte items from library!");
+		return;
+	}
+	com_grom_debug_Log.info("selected items: " + (selectedItems == null?"null":"" + selectedItems));
+	return;
+	var processor = new com_grom_fla2img_SelecteItemsDocPreprocessor(doc,selectedItems);
 	processor.addPreprocessor(new com_grom_fla2img_BitmapConvertStrategy(scale));
 	processor.process();
 	var _g = 0;
@@ -294,49 +301,6 @@ com_grom_fla2img_Main.main = function() {
 com_grom_fla2img_Main.prototype = {
 	__class__: com_grom_fla2img_Main
 };
-var com_grom_ui_BasePopup = function(layoutURI,properties,doc) {
-	var popupFile = com_grom_utils_UFlash.getScriptURIPath() + "StartPopup.xml";
-	com_grom_debug_Log.info("load popup xml: " + popupFile);
-	if(doc == null) doc = fl.getDocumentDOM();
-	this._result = doc.xmlPanel(popupFile);
-	com_grom_debug_Log.info("popup result:");
-	var _g = 0;
-	var _g1 = Reflect.fields(this._result);
-	while(_g < _g1.length) {
-		var name = _g1[_g];
-		++_g;
-		var value = Reflect.getProperty(this._result,name);
-		com_grom_debug_Log.info("prop: " + name + "=" + value);
-	}
-};
-com_grom_ui_BasePopup.__name__ = true;
-com_grom_ui_BasePopup.prototype = {
-	getDismiss: function() {
-		return this._result.dismiss;
-	}
-	,getResult: function() {
-		return this._result;
-	}
-	,__class__: com_grom_ui_BasePopup
-};
-var com_grom_fla2img_StartPopup = function() {
-	com_grom_ui_BasePopup.call(this,"StartPopup.xml",null,fl.getDocumentDOM());
-	if(this.getDismiss() == "accept") {
-		var config = com_grom_settings_Config.instance();
-		config.setFloat("shapes_scale",Std.parseFloat(this.getResult().scale));
-		config.setBoolean("all_items",Std.string(this.getResult().imagesGroup) == "all");
-		config.write();
-	}
-};
-com_grom_fla2img_StartPopup.__name__ = true;
-com_grom_fla2img_StartPopup.show = function() {
-	var popup = new com_grom_fla2img_StartPopup();
-	return popup.getDismiss() == "accept";
-};
-com_grom_fla2img_StartPopup.__super__ = com_grom_ui_BasePopup;
-com_grom_fla2img_StartPopup.prototype = $extend(com_grom_ui_BasePopup.prototype,{
-	__class__: com_grom_fla2img_StartPopup
-});
 var com_grom_processor_DocumentPreprocessor = function(doc) {
 	this._processors = [];
 	this._doc = doc;
@@ -457,6 +421,69 @@ com_grom_processor_DocumentPreprocessor.prototype = {
 	}
 	,__class__: com_grom_processor_DocumentPreprocessor
 };
+var com_grom_fla2img_SelecteItemsDocPreprocessor = function(doc,selectedItems) {
+	com_grom_processor_DocumentPreprocessor.call(this,doc);
+	this._selecteItems = selectedItems;
+};
+com_grom_fla2img_SelecteItemsDocPreprocessor.__name__ = true;
+com_grom_fla2img_SelecteItemsDocPreprocessor.__super__ = com_grom_processor_DocumentPreprocessor;
+com_grom_fla2img_SelecteItemsDocPreprocessor.prototype = $extend(com_grom_processor_DocumentPreprocessor.prototype,{
+	prepareTimelines: function() {
+		if(this._selecteItems) {
+			var sd = new com_grom_utils_SelectDependecies(this._doc.library.getSelectedItems(),["movie clip","graphic","button"]);
+			var items = sd.select();
+			return items.map(function(item) {
+				var symbol = item;
+				return symbol.timeline;
+			});
+		}
+		return com_grom_processor_DocumentPreprocessor.prototype.prepareTimelines.call(this);
+	}
+	,__class__: com_grom_fla2img_SelecteItemsDocPreprocessor
+});
+var com_grom_ui_BasePopup = function(layoutURI,properties,doc) {
+	var popupFile = com_grom_utils_UFlash.getScriptURIPath() + "StartPopup.xml";
+	com_grom_debug_Log.info("load popup xml: " + popupFile);
+	if(doc == null) doc = fl.getDocumentDOM();
+	this._result = doc.xmlPanel(popupFile);
+	com_grom_debug_Log.info("popup result:");
+	var _g = 0;
+	var _g1 = Reflect.fields(this._result);
+	while(_g < _g1.length) {
+		var name = _g1[_g];
+		++_g;
+		var value = Reflect.getProperty(this._result,name);
+		com_grom_debug_Log.info("prop: " + name + "=" + value);
+	}
+};
+com_grom_ui_BasePopup.__name__ = true;
+com_grom_ui_BasePopup.prototype = {
+	getDismiss: function() {
+		return this._result.dismiss;
+	}
+	,getResult: function() {
+		return this._result;
+	}
+	,__class__: com_grom_ui_BasePopup
+};
+var com_grom_fla2img_StartPopup = function() {
+	com_grom_ui_BasePopup.call(this,"StartPopup.xml",null,fl.getDocumentDOM());
+	if(this.getDismiss() == "accept") {
+		var config = com_grom_settings_Config.instance();
+		config.setFloat("shapes_scale",Std.parseFloat(this.getResult().scale));
+		config.setBoolean("all_items",Std.string(this.getResult().imagesGroup) == "all");
+		config.write();
+	}
+};
+com_grom_fla2img_StartPopup.__name__ = true;
+com_grom_fla2img_StartPopup.show = function() {
+	var popup = new com_grom_fla2img_StartPopup();
+	return popup.getDismiss() == "accept";
+};
+com_grom_fla2img_StartPopup.__super__ = com_grom_ui_BasePopup;
+com_grom_fla2img_StartPopup.prototype = $extend(com_grom_ui_BasePopup.prototype,{
+	__class__: com_grom_fla2img_StartPopup
+});
 var com_grom_settings_Config = function() {
 	this._vars = new haxe_ds_StringMap();
 };
@@ -523,6 +550,59 @@ com_grom_settings_Config.prototype = {
 };
 var com_grom_ui_PopupResult = function() { };
 com_grom_ui_PopupResult.__name__ = true;
+var com_grom_utils_SelectDependecies = function(items,processItemTypes) {
+	this._dependentis = [];
+	this._selectedItems = items;
+	this._itemTypes = processItemTypes;
+};
+com_grom_utils_SelectDependecies.__name__ = true;
+com_grom_utils_SelectDependecies.prototype = {
+	select: function() {
+		var _g = 0;
+		var _g1 = this._selectedItems;
+		while(_g < _g1.length) {
+			var i = _g1[_g];
+			++_g;
+			this.processItem(i);
+		}
+		return this._dependentis;
+	}
+	,processItem: function(item) {
+		if(com_grom_utils_UElement.itemIs(item,this._itemTypes)) {
+			var symbol = item;
+			if(HxOverrides.indexOf(this._dependentis,symbol,0) < 0) {
+				com_grom_debug_Log.info("...depenency selected: " + symbol.name);
+				this._dependentis.push(symbol);
+				this.processTimeline(symbol.timeline);
+			}
+		}
+	}
+	,processTimeline: function(tl) {
+		var _g = 0;
+		var _g1 = tl.layers;
+		while(_g < _g1.length) {
+			var l = _g1[_g];
+			++_g;
+			var _g2 = 0;
+			var _g3 = l.frames;
+			while(_g2 < _g3.length) {
+				var f = _g3[_g2];
+				++_g2;
+				var _g4 = 0;
+				var _g5 = f.elements;
+				while(_g4 < _g5.length) {
+					var e = _g5[_g4];
+					++_g4;
+					if(e.elementType == "instance") {
+						var instance = e;
+						if(instance.instanceType == "symbol") this.processItem(instance.libraryItem);
+					}
+				}
+			}
+		}
+	}
+	,__class__: com_grom_utils_SelectDependecies
+};
 var com_grom_utils_UElement = function() { };
 com_grom_utils_UElement.__name__ = true;
 com_grom_utils_UElement.hasRotation = function(e) {
@@ -1128,6 +1208,16 @@ String.__name__ = true;
 Array.__name__ = true;
 Date.prototype.__class__ = Date;
 Date.__name__ = ["Date"];
+if(Array.prototype.map == null) Array.prototype.map = function(f) {
+	var a = [];
+	var _g1 = 0;
+	var _g = this.length;
+	while(_g1 < _g) {
+		var i = _g1++;
+		a[i] = f(this[i]);
+	}
+	return a;
+};
 var __map_reserved = {}
 haxe_Log.trace = function(v,infos) {
 	fl.trace(v);

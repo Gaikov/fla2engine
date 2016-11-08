@@ -34,7 +34,17 @@ class Main
 		}
 
 		var scale = Config.instance().getFloat("shapes_scale", 1);
-		var processor:DocumentPreprocessor = new DocumentPreprocessor(doc);
+		var selectedItems = !Config.instance().getBoolean("all_items");
+		if (selectedItems && doc.library.getSelectedItems().length == 0)
+		{
+			UFlash.alert("Please selecte items from library!");
+			return;
+		}
+
+		Log.info("selected items: " + selectedItems);
+		return;
+
+		var processor:DocumentPreprocessor = new SelecteItemsDocPreprocessor(doc, selectedItems);
 		processor.addPreprocessor(new BitmapConvertStrategy(scale));
 		processor.process();
 
