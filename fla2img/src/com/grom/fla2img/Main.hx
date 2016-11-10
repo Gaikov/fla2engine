@@ -11,9 +11,12 @@ import jsfl.Flash;
 
 class Main
 {
+	static private inline var VERSION:String = "1.0.0";
+
 	public function new()
 	{
 		Flash.outputPanel.clear();
+		Log.info("fla2img version: " + VERSION);
 
 		var doc = Flash.getDocumentDOM();
 		doc.save();
@@ -37,12 +40,9 @@ class Main
 		var selectedItems = !Config.instance().getBoolean("all_items");
 		if (selectedItems && doc.library.getSelectedItems().length == 0)
 		{
-			UFlash.alert("Please selecte items from library!");
+			UFlash.alert("Please select items from library!");
 			return;
 		}
-
-		Log.info("selected items: " + selectedItems);
-		return;
 
 		var processor:DocumentPreprocessor = new SelecteItemsDocPreprocessor(doc, selectedItems);
 		processor.addPreprocessor(new BitmapConvertStrategy(scale));

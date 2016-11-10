@@ -1,4 +1,5 @@
 package com.grom.fla2img;
+import com.grom.debug.Log;
 import jsfl.SymbolItem;
 import jsfl.Item.ItemType;
 import com.grom.utils.SelectDependecies;
@@ -21,6 +22,7 @@ class SelecteItemsDocPreprocessor extends DocumentPreprocessor
 	{
 		if (_selecteItems)
 		{
+			Log.info("prepare selected dependencies...");
 			var sd = new SelectDependecies(_doc.library.getSelectedItems(),
 				[ItemType.MovieClip, ItemType.Graphic, ItemType.Button]);
 			var items = sd.select();

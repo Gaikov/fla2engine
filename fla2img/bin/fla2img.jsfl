@@ -252,6 +252,7 @@ com_grom_fla2img_BitmapConvertStrategy.prototype = {
 };
 var com_grom_fla2img_Main = function() {
 	fl.outputPanel.clear();
+	com_grom_debug_Log.info("fla2img version: " + "1.0.0");
 	var doc = fl.getDocumentDOM();
 	doc.save();
 	com_grom_utils_UFlash.readConfig(doc,"fla2img");
@@ -268,11 +269,9 @@ var com_grom_fla2img_Main = function() {
 	var scale = com_grom_settings_Config.instance().getFloat("shapes_scale",1);
 	var selectedItems = !com_grom_settings_Config.instance().getBoolean("all_items");
 	if(selectedItems && doc.library.getSelectedItems().length == 0) {
-		com_grom_utils_UFlash.alert("Please selecte items from library!");
+		com_grom_utils_UFlash.alert("Please select items from library!");
 		return;
 	}
-	com_grom_debug_Log.info("selected items: " + (selectedItems == null?"null":"" + selectedItems));
-	return;
 	var processor = new com_grom_fla2img_SelecteItemsDocPreprocessor(doc,selectedItems);
 	processor.addPreprocessor(new com_grom_fla2img_BitmapConvertStrategy(scale));
 	processor.process();
@@ -350,21 +349,10 @@ com_grom_processor_DocumentPreprocessor.prototype = {
 			this.processTimeline(tl);
 		}
 		var _g3 = 0;
-		var _g11 = this._doc.library.items;
+		var _g11 = this._processors;
 		while(_g3 < _g11.length) {
-			var item = _g11[_g3];
+			var p1 = _g11[_g3];
 			++_g3;
-			if(com_grom_utils_UElement.itemIs(item,["graphic","movie clip","button"])) {
-				var symbol = item;
-				this._doc.library.editItem(item.name);
-				this.processTimeline(symbol.timeline);
-			}
-		}
-		var _g4 = 0;
-		var _g12 = this._processors;
-		while(_g4 < _g12.length) {
-			var p1 = _g12[_g4];
-			++_g4;
 			p1.end();
 		}
 		com_grom_debug_Log.info("****************************************************");
@@ -430,6 +418,7 @@ com_grom_fla2img_SelecteItemsDocPreprocessor.__super__ = com_grom_processor_Docu
 com_grom_fla2img_SelecteItemsDocPreprocessor.prototype = $extend(com_grom_processor_DocumentPreprocessor.prototype,{
 	prepareTimelines: function() {
 		if(this._selecteItems) {
+			com_grom_debug_Log.info("prepare selected dependencies...");
 			var sd = new com_grom_utils_SelectDependecies(this._doc.library.getSelectedItems(),["movie clip","graphic","button"]);
 			var items = sd.select();
 			return items.map(function(item) {
@@ -1222,6 +1211,7 @@ var __map_reserved = {}
 haxe_Log.trace = function(v,infos) {
 	fl.trace(v);
 };
+com_grom_fla2img_Main.VERSION = "1.0.0";
 com_grom_ui_PopupResult.ACCEPT = "accept";
 com_grom_ui_PopupResult.CANCEL = "cancel";
 js_Boot.__toStr = {}.toString;

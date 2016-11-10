@@ -72,17 +72,6 @@ class DocumentPreprocessor
 			processTimeline(tl);
 		}
 
-		for (item in _doc.library.items)
-		{
-			//Log.info("item: " + item.itemType);
-			if (UElement.itemIs(item, [ItemType.Graphic, ItemType.MovieClip, ItemType.Button]))
-			{
-				var symbol:SymbolItem = cast item;
-				_doc.library.editItem(item.name);
-				processTimeline(symbol.timeline);
-			}
-		}
-
 		for (p in _processors)
 		{
 			p.end();
