@@ -8,7 +8,7 @@ class StartPopup extends BasePopup
 {
 	public function new()
 	{
-		super("StartPopup.xml", null, Flash.getDocumentDOM());
+		super("start_popup", null, Flash.getDocumentDOM());
 
 		if (getDismiss() == PopupResult.ACCEPT)
 		{
@@ -17,6 +17,21 @@ class StartPopup extends BasePopup
 			config.setBoolean("all_items", Std.string(getResult().imagesGroup) == "all");
 			config.write();
 		}
+	}
+
+	override private function initLayoutValues():Void
+	{
+		var config = Config.instance();
+		setControlValue("shapes_scale", Std.string(config.getFloat("shapes_scale", 1)));
+
+/*		if (config.getBoolean("all_items"))
+		{
+			setRadioSelected("check_all");
+		}
+		else
+		{
+			setRadioSelected("check_selected");
+		}*/
 	}
 
 	public static function show():Bool

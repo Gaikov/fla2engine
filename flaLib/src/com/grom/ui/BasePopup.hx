@@ -1,4 +1,7 @@
 package com.grom.ui;
+import jsfl.FLfile;
+import String;
+import haxe.Resource;
 import jsfl.Flash;
 import com.grom.debug.Log;
 import com.grom.utils.UFlash;
@@ -13,17 +16,28 @@ import haxe.ds.StringMap;
 class BasePopup
 {
 	private var _result:Dynamic<String>;
+	private var _layout:String;
 
-	public function new(layoutURI:String, properties:StringMap<String> = null, doc:Document = null)
+	public function new(layoutResource:String, properties:StringMap<String> = null, doc:Document = null)
 	{
-		var popupFile = UFlash.getScriptURIPath() + "StartPopup.xml";
-		Log.info("load popup xml: " + popupFile);
+		_layout = Resource.getString(layoutResource);
+
+		initLayoutValues();
+
+		var match = ~/#\{.*}/g;
+		_layout = match.replace(_layout, "");
+
+		var tmpFileName:String = UFlash.getScriptURIPath() + "/" + layoutResource + ".tmp";
+		FLfile.write(tmpFileName, _layout);
+
+		Log.info("load popup xml: " + tmpFileName);
 		if (doc == null)
 		{
 			doc = Flash.getDocumentDOM();
 		}
 
-		_result = doc.xmlPanel(popupFile);
+		_result = doc.xmlPanel(tmpFileName);
+		FLfile.remove(tmpFileName);
 
 		Log.info("popup result:");
 		for (name in Reflect.fields(_result))
@@ -32,6 +46,21 @@ class BasePopup
 			Log.info("prop: " + name + "=" + value);
 		}
 	}
+
+	private function initLayoutValues():Void
+	{
+
+	}
+
+	public function setControlValue(name:String, value:String):Void
+	{
+		_layout = StringTools.replace(_layout, "#{" + name + "}", value);
+	}
+
+/*	public function setRadioSelected(name:String):Void
+	{
+		setControlValue(name, "selected=\"true\"");
+	}*/
 
 	public function getDismiss():String
 	{

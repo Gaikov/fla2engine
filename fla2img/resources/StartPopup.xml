@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<dialog title="Export options" buttons="accept, cancel">
+    <hbox>
+        <label control="scale" value="Shapes scale:"/>
+        <textbox id="scale" value="#{shapes_scale}"/>
+    </hbox>
+
+    <label control="imagesGroup" value="Export images:"/>
+    <radiogroup id="imagesGroup">
+        <radio label="All library" value="all"/>
+        <radio label="Selected library items" value="selected"/>
+    </radiogroup>
+</dialog>
+

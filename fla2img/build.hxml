@@ -2,5 +2,6 @@
 -cp ../flaLib/src
 -lib jsfl
 -main com.grom.fla2img.Main
+-resource resources/StartPopup.xml@start_popup
 -D haxeJSON
 -js ./bin/fla2img.jsfl
