@@ -7,8 +7,8 @@
 
     <label control="imagesGroup" value="Export images:"/>
     <radiogroup id="imagesGroup">
-        <radio label="All library" value="all"/>
         <radio label="Selected library items" value="selected"/>
+        <radio label="All library" value="all"/>
     </radiogroup>
 </dialog>
 
